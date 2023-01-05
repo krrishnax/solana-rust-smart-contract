@@ -7,7 +7,7 @@ use solana_program::{
 };
 
 pub mod instruction;
-use instruction::{MovieInstruction};
+use instruction::MovieInstruction;
 
 entrypoint!(process_instruction);
 
