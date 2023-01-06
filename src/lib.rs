@@ -105,7 +105,11 @@ pub fn add_movie_review(
     account_data.is_initialized = true;
 
     msg!("serializing account");
-    account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
+    account_data.serialize(
+        &mut &mut pda_account
+        .data
+        .borrow_mut()[..]
+    )?;
     msg!("state account serialized");
 
     Ok(())
