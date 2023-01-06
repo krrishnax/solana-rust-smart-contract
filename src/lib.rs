@@ -75,14 +75,28 @@ pub fn add_movie_review(
             account_len.try_into().unwrap(),
             program_id,
         ), 
-        &[initializer.clone(), pda_account.clone(), system_program.clone()], 
-        &[&[initializer.key.as_ref(), title.as_bytes().as_ref(), &[bump_seed]]],
+        &[
+            initializer.clone(), 
+            pda_account.clone(), 
+            system_program.clone()
+        ], 
+        &[
+            &[
+                initializer.key.as_ref(), 
+                title.as_bytes().as_ref(), 
+                &[bump_seed]
+            ]
+        ],
     )?;
 
     msg!("PDA created: {}", pda);
 
     msg!("unpacking state account");
-    let mut account_data = try_from_slice_unchecked::<MovieAccountState>(&pda_account.data.borrow()).unwrap();
+    let mut account_data = try_from_slice_unchecked::<MovieAccountState>(
+        &pda_account
+        .data
+        .borrow()
+    ).unwrap();
     msg!("borrowed account data");
 
     account_data.title = title;
