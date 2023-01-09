@@ -6,6 +6,11 @@ pub enum MovieInstruction {
         title: String,
         rating: u8,
         description: String,
+    },
+    UpdateMovieReview {
+        title: String,
+        rating: u8,
+        description: String
     }
 }
 
@@ -20,6 +25,11 @@ impl MovieInstruction {
                 title: payload.title,
                 rating: payload.rating,
                 description: payload.description
+            },
+            1 => Self::UpdateMovieReview {
+                title: payload.title,
+                rating: payload.rating,
+                description: payload.description 
             },
             _ => return Err(ProgramError::InvalidInstructionData)
         })
