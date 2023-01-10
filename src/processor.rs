@@ -54,7 +54,7 @@ pub fn add_movie_review(
     let pda_account = next_account_info(account_info_iter)?;
     let system_program = next_account_info(account_info_iter)?;
 
-    // add check here
+    // ensure that the initializer of a review is also a signer on the transaction.
     if !initializer.is_signer {
         msg!("Missing required signature");
         return Err(ProgramError::MissingRequiredSignature)
@@ -67,16 +67,18 @@ pub fn add_movie_review(
         ], 
         program_id
     );
+    // make sure the pda_account passed in by the user is the pda we expect
     if pda != *pda_account.key {
         msg!("Invalid seeds for PDA");
         return Err(ProgramError::InvalidArgument)
     }
-
+    // making sure rating falls within the 1 to 5 scale.
     if rating > 5 || rating < 1 {
         msg!("Rating cannot be higher than 5");
         return Err(ReviewError::InvalidRating.into())
     }
 
+    // let’s also check that the content of the review does not exceed the allocated space
     let total_len: usize = 1 + 1 + (4 + title.len()) + (4 + description.len());
     if total_len > 1000 {
         msg!("Data length is larger than 1000 bytes");
@@ -149,17 +151,24 @@ pub fn update_movie_review(
     let initializer = next_account_info(account_info_iter)?;
     let pda_account = next_account_info(account_info_iter)?;
 		
+    // This is a good time to check that the pda_account.owner is the same as the program_id
     if pda_account.owner != program_id {
         return Err(ProgramError::IllegalOwner)
     }
 
+    // check that the signer is the same as the initializer
     if !initializer.is_signer {
         msg!("Missing required signature");
         return Err(ProgramError::MissingRequiredSignature)
     }
 
+    // unpack the data from the pda_account
     msg!("unpacking state account");
-    let mut account_data = try_from_slice_unchecked::<MovieAccountState>(&pda_account.data.borrow()).unwrap();
+    let mut account_data = try_from_slice_unchecked::<MovieAccountState>(
+        &pda_account
+        .data
+        .borrow()
+    ).unwrap();
     msg!("borrowed account data");
 
     // Derive PDA and check that it matches client
@@ -186,10 +195,15 @@ pub fn update_movie_review(
         return Err(ReviewError::InvalidDataLength.into())
     }
 
+    // update the account info and serialize it to account
     account_data.rating = rating;
     account_data.description = description;
 
-    account_data.serialize(&mut &mut pda_account.data.borrow_mut()[..])?;
+    account_data.serialize(
+        &mut &mut pda_account
+        .data
+        .borrow_mut()[..]
+    )?;
 
     Ok(())
 }
